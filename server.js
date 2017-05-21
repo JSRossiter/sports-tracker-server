@@ -31,12 +31,13 @@ io.on('connection', function (socket) {
   console.log('new client');
   socket.emit('news', 'connection established');
   socket.on('post', function (data) {
-    console.log(data);
+    console.log('post to', data.room, ':', data.message);
     data.message.id = uuidV4();
-    socket.to(data.room).emit('post', data.message);
+    data.message.room = data.room;
+    io.sockets.to(data.room).emit('post', data.message);
   });
   socket.on('join', function (data) {
-    console.log(data);
+    console.log(data.user, 'is joining', data.room);
     socket.join(data.room);
     socket.to(data.room).emit('new user', data.user);
   });
