@@ -27,11 +27,12 @@ server.listen(PORT, () => {
 });
 
 io.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
+  console.log('new client');
+  socket.emit('news', 'connection established');
   socket.on('post', function (data) {
     console.log(data);
 
-    socket.to(data.room).emit(data.post);
+    socket.to(data.room).emit('post', data);
   });
   socket.on('join', function (data) {
     console.log(data);
