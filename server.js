@@ -28,25 +28,26 @@ server.listen(PORT, () => {
 });
 
 const broadcastUserCount = (room) => {
+  const users = io.sockets.adapter.rooms[room];
   const onlineUsersMsg = {
     room,
-    userCount: io.sockets.adapter.rooms[room].length
+    userCount: users ? users.length : 0
   };
   io.in(room).emit('user count', onlineUsersMsg);
 };
 
-const broadcast = (params) => {
-
+const broadcastToRoom = (room, message) => {
+  const newMessage = message;
+  newMessage.id = uuidV4();
+  newMessage.room = room;
+  io.in(room).emit('post', newMessage);
 };
 
 io.on('connection', (socket) => {
   console.log('new client');
   socket.on('post', (data) => {
     console.log('post to', data.room, ':', data.message);
-    const newMessage = data.message;
-    newMessage.id = uuidV4();
-    newMessage.room = data.room;
-    io.in(data.room).emit('post', newMessage);
+    broadcastToRoom(data.room, data.message);
   });
   socket.on('join', (data) => {
     console.log(data.user, 'is joining', data.room);
@@ -54,6 +55,7 @@ io.on('connection', (socket) => {
     broadcastUserCount(data.room);
   });
   socket.on('leave', (data) => {
+    console.log('leaving', data.room);
     socket.leave(data.room);
     broadcastUserCount(data.room);
   });
