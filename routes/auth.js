@@ -23,23 +23,9 @@ module.exports = (function() {
   router.use(bodyParser.json());
   router.use(bodyParser.urlencoded({ extended: true }));
 
-  router.use((req, res, next) => {
-    const sessionUsername = req.session.username;
-
-    if (!sessionUsername) {
-      res.locals.username = null;
-    } else {
-      dbUsers.getUserByUserName(sessionUsername).then(result => {
-        res.locals.username = result.Username;
-      });
-    }
-    next();
-  });
-
   // checks for sessions on page refresh
-  router.post('/checkifloggedin', (req, res) => {
+  router.get('/checkifloggedin', (req, res) => {
     const sessionUsername = req.session.username;
-    console.log('req.session',sessionUsername);
     res.json({ isLoggedIn: (sessionUsername !== undefined) });
   });
 
@@ -83,12 +69,10 @@ module.exports = (function() {
         bcrypt.compare(inputPw, registeredPw, (err, result) => {
           if (!result) {
             res.status(401);
-            res.json({ response: 'incorrect username or password' });
+            res.json({ response: 'Incorrect username or password' });
           } else {
             req.session.username = inputUsername;
-            res.json({ response: 'login ok' });
-            console.log('login req.session.username', req.session.username);
-            console.log('login req.session', req.session);
+            res.json({ response: 'Login ok' });
           }
         });
       }
