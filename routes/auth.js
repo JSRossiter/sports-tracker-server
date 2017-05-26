@@ -25,6 +25,7 @@ module.exports = (function() {
 
   router.use((req, res, next) => {
     const sessionUsername = req.session.username;
+
     if (!sessionUsername) {
       res.locals.username = null;
     } else {
@@ -33,6 +34,13 @@ module.exports = (function() {
       });
     }
     next();
+  });
+
+  // checks for sessions on page refresh
+  router.post('/checkifloggedin', (req, res) => {
+    const sessionUsername = req.session.username;
+    console.log('req.session',sessionUsername);
+    res.json({ isLoggedIn: (sessionUsername !== undefined) });
   });
 
   // register route
@@ -79,6 +87,8 @@ module.exports = (function() {
           } else {
             req.session.username = inputUsername;
             res.json({ response: 'login ok' });
+            console.log('login req.session.username', req.session.username);
+            console.log('login req.session', req.session);
           }
         });
       }
@@ -87,7 +97,7 @@ module.exports = (function() {
     });
   });
 
-  //Logout route
+  // Logout route
   router.post('/logout', (req, res) => {
     req.session = null;
     res.redirect('/');
