@@ -2,7 +2,7 @@ const createPlayString = data => data.gameplaybyplay.plays.play.reduce((acc, pla
   if (play === null) return acc;
   if (play.period !== data.gameplaybyplay.plays[id - 1]) {
     acc.push({
-      id: id * data.gameplaybyplay.plays.length,
+      id: id * data.gameplaybyplay.plays.play.length,
       content: play.period === '2' ? '2nd period starting' : '3rd period starting',
       style: 'period-play-nhl'
     });
@@ -17,7 +17,7 @@ const createPlayString = data => data.gameplaybyplay.plays.play.reduce((acc, pla
 
   switch (playType[0]) {
     case 'faceoff':
-      if (play.faceoff.wonBy === data.game.homeTeam.Abbreviation) {
+      if (play.faceoff.wonBy === data.gameplaybyplay.game.homeTeam.Abbreviation) {
         output.content = `${play.faceoff.homePlayer.FirstName} ${play.faceoff.homePlayer.LastName} wins faceoff`;
       } else {
         output.content = `${play.faceoff.awayPlayer.FirstName} ${play.faceoff.awayPlayer.LastName} wins faceoff`;

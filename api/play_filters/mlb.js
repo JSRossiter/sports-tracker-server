@@ -142,7 +142,7 @@ const createPlayString = data => getPlayInfo(data.gameplaybyplay.atBats.atBat).m
       break;
     }
     default: {
-      output.content = 'Unknown play type.';
+      output.content = `${play.batter} batting...`;
       return output;
     }
   }

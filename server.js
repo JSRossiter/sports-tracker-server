@@ -22,6 +22,7 @@ const dbCards = require('./db/cards')(knex);
 
 const router = require('./routes/auth');
 const api_router = require('./routes/game_api');
+const { updateDashboard }= require('./api/feed');
 
 const { sendEmail } = require('./emailer/emailer');
 
@@ -43,8 +44,18 @@ server.listen(PORT, () => {
   console.log(`Sports tracker listening on port ${PORT}`);
 });
 
+updateDashboard().then(values => console.log(values));
+
 const task = cron.schedule(`0 * * * * *`, function(){
-  io.emit('update', 'json');
+  // updateDashboard().then(result => {
+  //   console.log(result);
+  //   const onUpdateCards = {
+  //     type: 'UPDATE_CARDS',
+  //     result
+  //   };
+  //   io.emit('action', onUpdateCards);
+  // });
+
 }, false);
 task.start();
 

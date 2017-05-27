@@ -9,7 +9,7 @@ const cookieSession = require('cookie-session');
 const bodyParser = require('body-parser');
 const moment = require('moment-timezone');
 
-const addCard = require('../api/feed');
+const {addCard} = require('../api/feed');
 
 const config = {
   auth: {
@@ -20,7 +20,7 @@ const config = {
 
 const api_key = process.env.GOOGLE_API_KEY;
 const date_format = 'YYYYMMDD';
-const date_time_zone = 'America/New_York';
+const date_time_zone = 'America/Los_Angeles';
 
 
 function getStartingTime(game){
@@ -58,6 +58,7 @@ module.exports = (function() {
         return getStartingTime(game)
           .then(newtime => {
             game.time = newtime.format('hh:mmA');
+            game.gameId = game.id;
             return game;
           });
       })).then(values => {
