@@ -10,6 +10,7 @@ const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const dbUsers = require('../db/users')(knex);
 
+
 const router = express.Router();
 
 module.exports = (function() {
@@ -62,7 +63,7 @@ module.exports = (function() {
   router.post('/login', (req, res) => {
     const inputPw = req.body.password;
     const inputUsername = req.body.username;
-    
+
     dbUsers.getUserByUserName(inputUsername).then((result) => {
       if (!result[0]) {
         res.status(403)
