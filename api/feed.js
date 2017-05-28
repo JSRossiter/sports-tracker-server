@@ -66,16 +66,16 @@ function addCard(game, res){
             case BASKETBALL:
               if(response.data.gameplaybyplay.plays){
                 data.plays = nba(response.data).reverse();
+                data.timeRemaining = data.plays[0].time;
               }
               data.quarter = selectedGame.quarterSummary.quarter[selectedGame.quarterSummary.quarter.length - 1]['@number'];
-              data.timeRemaining = selectedGame.timeRemaining;
               break;
             case HOCKEY:
               if(response.data.gameplaybyplay.plays){
                 data.plays = nhl(response.data).reverse();
+                data.timeRemaining = data.plays[0].time;
               }
               data.period = selectedGame.periodSummary.period[selectedGame.periodSummary.period.length - 1]['@number'];
-              data.timeRemaining = selectedGame.timeRemaining;
               data.periods = selectedGame.periodSummary.period;
               break;
             default:
@@ -167,16 +167,16 @@ function updateDashboard(league, socket){
                   case BASKETBALL:
                     if(response.data.gameplaybyplay.plays){
                       data.plays = nba(response.data);
+                      data.timeRemaining = data.plays[0].time;
                     }
                     data.quarter = game.quarterSummary.quarter[game.quarterSummary.quarter.length - 1]['@number'];
-                    data.timeRemaining = game.timeRemaining;
                     break;
                   case HOCKEY:
                     if(response.data.gameplaybyplay.plays){
                       data.plays = nhl(response.data);
+                      data.timeRemaining = data.plays[0].time;
                     }
                     data.period = game.periodSummary.period[game.periodSummary.period.length - 1]['@number'];
-                    data.timeRemaining = game.timeRemaining;
                     data.periods = game.periodSummary.period;
                     break;
                   default:
