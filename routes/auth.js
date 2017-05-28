@@ -24,10 +24,13 @@ module.exports = (function() {
   router.use(bodyParser.json());
   router.use(bodyParser.urlencoded({ extended: true }));
 
-   // checks for sessions on page refresh
+  // checks for sessions on page refresh
   router.get('/checkifloggedin', (req, res) => {
     const sessionUsername = req.session.username;
-    res.json({ isLoggedIn: (sessionUsername !== undefined) });
+    res.json({
+      isLoggedIn: (sessionUsername !== undefined),
+      username: sessionUsername
+    });
   });
 
   // register route
@@ -41,12 +44,12 @@ module.exports = (function() {
         res.json({ response: 'Email entered already in use. Please register with another email' });
       } else {
         bcrypt.hash(req.body.password, 10, (err, hash) => {
-          const username = req.body.username;
-          const email = req.body.email;
+          const username = req.body.username.toLowerCase();
+          const email = req.body.email.toLowerCase();
           dbUsers.insertUser(username, email, hash)
           .then(() => {
-            req.session.username = req.body.username;
-            res.json({ response: 'Registration OK' })
+            req.session.username = username;
+            res.json({ username: req.session.username });
           });
         });
       }
@@ -56,7 +59,7 @@ module.exports = (function() {
   // LOGIN routes
   router.post('/login', (req, res) => {
     const inputPw = req.body.password;
-    const inputUsername = req.body.username;
+    const inputUsername = req.body.username.toLowerCase();
 
     dbUsers.getUserByUserName(inputUsername).then((result) => {
       if (!result[0]) {
@@ -73,7 +76,7 @@ module.exports = (function() {
             res.json({ response: 'Incorrect username or password' });
           } else {
             req.session.username = inputUsername;
-            res.json({ response: 'Login ok' });
+            res.json({ username: req.session.username });
           }
         });
       }
