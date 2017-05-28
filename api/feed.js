@@ -7,6 +7,7 @@ const moment = require('moment-timezone');
 const api_key = process.env.GOOGLE_API_KEY;
 const date_format = 'YYYYMMDD';
 const date_time_zone = 'America/Los_Angeles';
+const game_time_zone = 'America/New_York';
 
 const BASEBALL = 'MLB';
 const BASKETBALL = 'NBA';
@@ -48,24 +49,31 @@ function addCard(game, res){
       data.gameStarted = true;
       data.gameCompleted = selectedGame.isCompleted;
       data.displayPlayByPlay = true;
-      data.plays = [];
+      data.startTime = game.time;
+      data.inProgress = selectedGame.isInProgress;
+      data.isUnplayed = selectedGame.isUnplayed;
       axios.get(`https://www.mysportsfeeds.com/api/feed/pull/${game.league}/latest/game_playbyplay.json?gameid=${game.gameId}`, config)
         .then(response => {
           switch (game.league){
             case BASEBALL:
-              data.plays = mlb(response.data);
+              if(response.data.gameplaybyplay.atBats){
+                data.plays = mlb(response.data).reverse();
+              }
               data.currentInning = selectedGame.currentInning;
               data.currentInningHalf = selectedGame.currentInningHalf;
               data.innings = selectedGame.inningSummary.inning;
               break;
             case BASKETBALL:
-              data.plays = nba(response.data);
+              if(response.data.gameplaybyplay.plays){
+                data.plays = nba(response.data).reverse();
+              }
               data.quarter = selectedGame.quarterSummary.quarter[selectedGame.quarterSummary.quarter.length - 1]['@number'];
               data.timeRemaining = selectedGame.timeRemaining;
               break;
             case HOCKEY:
-              data.plays = nhl(response.data);
-              console.log(data.plays);
+              if(response.data.gameplaybyplay.plays){
+                data.plays = nhl(response.data).reverse();
+              }
               data.period = selectedGame.periodSummary.period[selectedGame.periodSummary.period.length - 1]['@number'];
               data.timeRemaining = selectedGame.timeRemaining;
               data.periods = selectedGame.periodSummary.period;
@@ -77,6 +85,7 @@ function addCard(game, res){
         })
     }).catch(error => console.log(error));
   } else {
+
     const data = {
       gameId: game.gameId,
       league: game.league,
@@ -88,6 +97,9 @@ function addCard(game, res){
       date: game.date,
       gameStarted: false,
       displayPlayByPlay: false,
+      startTime: game.time,
+      inProgress: 'false',
+      isUnplayed: 'true',
       plays: []
     }
     switch(game.league){
@@ -113,63 +125,75 @@ function addCard(game, res){
 }
 
 
-function updateDashboard(){
-  const games = [];
-  const league = 'MLB';
+function updateDashboard(league, socket){
   const today = moment().tz(date_time_zone);
-  console.log(`https://www.mysportsfeeds.com/api/feed/pull/${league}/latest/scoreboard.json?fordate=${today.format('YYYYMMDD')}`);
-  axios.get(`https://www.mysportsfeeds.com/api/feed/pull/${league}/latest/scoreboard.json?fordate=${today.format('YYYYMMDD')}`, config)
+  return axios.get(`https://www.mysportsfeeds.com/api/feed/pull/${league}/latest/scoreboard.json?fordate=${today.format('YYYYMMDD')}`, config)
   .then(response => {
-    response.data.scoreboard.gameScore.forEach(game => {
-      const time = game.game.time;
-      const date = game.game.date;
-      const game_starting_time = moment.tz(`${date} ${time}`,'YYYY-MM-DD hh:mmA', date_time_zone);
-      const now = moment().tz(date_time_zone);
-      if(game_starting_time.diff(now) < 0){
-        const date = game.game.date.replace(/-/g , '');
-        const data = {};
-        data.gameId = game.game.ID;
-        data.league = league;
-        data.display = 'BASIC';
-        data.awayTeam = game.game.awayTeam;
-        data.homeTeam = game.game.homeTeam;
-        data.homeScore = game.game.homeScore;
-        data.awayScore = game.game.awayScore;
-        data.date = game.game.date;
-        data.gameStarted = true;
-        data.gameCompleted = game.game.isCompleted;
-        data.displayPlayByPlay = true;
-        data.plays = [];
-        axios.get(`https://www.mysportsfeeds.com/api/feed/pull/${data.league}/latest/game_playbyplay.json?gameid=${data.gameId}`, config)
-          .then(response => {
-            switch (data.league){
-              case BASEBALL:
-                data.plays = mlb(response.data);
-                data.currentInning = game.currentInning;
-                data.currentInningHalf = game.currentInningHalf;
-                data.innings = game.inningSummary.inning;
-                break;
-              case BASKETBALL:
-                data.plays = nba(response.data);
-                data.quarter = game.quarterSummary.quarter[game.quarterSummary.quarter.length - 1]['@number'];
-                data.timeRemaining = game.timeRemaining;
-                break;
-              case HOCKEY:
-                data.plays = nhl(response.data);
-
-                data.period = game.periodSummary.period[game.periodSummary.period.length - 1]['@number'];
-                data.timeRemaining = game.timeRemaining;
-                data.periods = game.periodSummary.period;
-                break;
-              default:
-                break;
+    if(response.data.scoreboard.gameScore){
+      return Promise.all(response.data.scoreboard.gameScore.map(game => {
+          return new Promise((resolve, reject) => {
+            const time = game.game.time;
+            const date = game.game.date;
+            const game_starting_time = moment.tz(`${date} ${time}`,'YYYY-MM-DD hh:mmA', game_time_zone);
+            const now = moment().tz(date_time_zone);
+            const data = {};
+            data.gameId = Number(game.game.ID);
+            data.league = league;
+            data.display = 'BASIC';
+            data.awayTeam = game.game.awayTeam.Abbreviation;
+            data.homeTeam = game.game.homeTeam.Abbreviation;
+            data.homeScore = Number(game.homeScore);
+            data.awayScore = Number(game.awayScore);
+            data.date = game.game.date;
+            data.gameStarted = true;
+            data.gameCompleted = game.isCompleted;
+            data.displayPlayByPlay = true;
+            data.startTime = game.time;
+            data.isCompleted = game.isInProgress !== 'true' && game.isUnplayed !== 'true';
+            data.plays = [];
+            if(game_starting_time.diff(now) < 0){
+              const date = game.game.date.replace(/-/g , '');
+              return axios.get(`https://www.mysportsfeeds.com/api/feed/pull/${data.league}/latest/game_playbyplay.json?gameid=${data.gameId}`, config)
+              .then(response => {
+                switch (data.league){
+                  case BASEBALL:
+                    if(response.data.gameplaybyplay.atBats){
+                      data.plays = mlb(response.data).reverse();
+                    }
+                    data.currentInning = game.currentInning;
+                    data.currentInningHalf = game.currentInningHalf;
+                    data.innings = game.inningSummary.inning;
+                    break;
+                  case BASKETBALL:
+                    if(response.data.gameplaybyplay.plays){
+                      data.plays = nba(response.data);
+                    }
+                    data.quarter = game.quarterSummary.quarter[game.quarterSummary.quarter.length - 1]['@number'];
+                    data.timeRemaining = game.timeRemaining;
+                    break;
+                  case HOCKEY:
+                    if(response.data.gameplaybyplay.plays){
+                      data.plays = nhl(response.data);
+                    }
+                    data.period = game.periodSummary.period[game.periodSummary.period.length - 1]['@number'];
+                    data.timeRemaining = game.timeRemaining;
+                    data.periods = game.periodSummary.period;
+                    break;
+                  default:
+                    break;
+                }
+                const some = new Array(data);
+                 const onUpdateCards = {
+                  type: 'UPDATE_CARDS',
+                  some
+                };
+                socket.emit('action', onUpdateCards);
+              })
             }
-          games.push(data);
-          console.log('inisde',games);
-        }).catch(error => console.log(error));
-      }
-    })
-  }).then(dfjlkdf =>  console.log('outside',games));
+          })
+      }));
+    }
+  })
 }
 
 module.exports = {addCard, updateDashboard};

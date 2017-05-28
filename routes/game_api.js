@@ -21,6 +21,7 @@ const config = {
 const api_key = process.env.GOOGLE_API_KEY;
 const date_format = 'YYYYMMDD';
 const date_time_zone = 'America/Los_Angeles';
+const game_time_zone = 'America/New_York';
 
 
 function getStartingTime(game){
@@ -37,7 +38,7 @@ function getStartingTime(game){
     return axios.get(`https://maps.googleapis.com/maps/api/timezone/json?location=${location}&timestamp=1331161200&sensor=false&key=${api_key}`)
     .then(json => {
       const timezone = json.data.timeZoneId;
-      const startTime = moment.tz(`${date} ${time}`, "YYYY-MM-DD hh:mmA", timezone);
+      const startTime = moment.tz(`${date} ${time}`, "YYYY-MM-DD hh:mmA", game_time_zone);
       return startTime.tz('America/Los_Angeles');
     })
   });
