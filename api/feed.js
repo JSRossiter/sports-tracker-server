@@ -35,13 +35,9 @@ function gameSelector(id, json){
 }
 
 function addCard(user_id, game, res){
-  console.log(Number(user_id));
-  console.log(Number(game.gameId));
   if(user_id){
     dbCards.findByGameAndUser(Number(game.gameId), Number(user_id)).then(result => {
-      console.log(result);
       if(!result[0]){
-        console.log('insert card');
         dbCards.insertCard(game, user_id).then(result => console.log(result));
       }
     });
@@ -211,12 +207,12 @@ function updateDashboard(league, socket){
                   some
                 };
                 socket.emit('action', onUpdateCards);
-              }).catch(error => console.log(error.response))
+              }).catch(error => console.log(error))
             }
           })
       }));
     }
-  }).catch(error => console.log(error.response.data.message))
+  }).catch(error => console.log(error))
 }
 
 module.exports = {addCard, updateDashboard};

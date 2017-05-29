@@ -56,7 +56,6 @@ module.exports = (function() {
   });
 
   api_router.get('/:league/users/:id', (req, res) => {
-    console.log('calling cards for the user');
     const user_id = req.session.user_id;
     if(user_id){
       dbCards.getCardsByUser(user_id).then(result => {
