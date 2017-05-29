@@ -45,9 +45,9 @@ server.listen(PORT, () => {
 });
 
 const task = cron.schedule(`0 * * * * *`, function(){
-  updateDashboard('MLB', io);
-  updateDashboard('NBA', io);
-  updateDashboard('NHL', io);
+  //updateDashboard('MLB', io);
+  //updateDashboard('NBA', io);
+  //updateDashboard('NHL', io);
 }, false);
 task.start();
 
