@@ -40,13 +40,13 @@ module.exports = (function() {
 
   // register route
   router.post('/register', (req, res) => {
-    dbUsers.getUserByEmail(req.body.email).then(result => {
+    dbUsers.getUserByUserNameOrEmail(req.body.username, req.body.email).then(result => {
       if (!req.body.email || !req.body.password || !req.body.username){
         res.status(400);
-        res.json({ message: 'Please input all fields.'});
+        res.json({ message: 'Please input all fields.' });
       } else if (result[0]) {
         res.status(400);
-        res.json({ message: 'Email entered already in use. Please register with another email' });
+        res.json({ message: 'Username/Email already in use. Please register with another username and email' });
       } else {
         bcrypt.hash(req.body.password, 10, (err, hash) => {
           const username = req.body.username.toLowerCase();
@@ -70,7 +70,7 @@ module.exports = (function() {
     dbUsers.getUserByUserName(inputUsername).then((result) => {
       if (!result[0]) {
         res.status(401);
-        res.json({ message: `Incorrect username or password` });
+        res.json({ message: 'Incorrect username or password' });
       } else {
         const registeredPw = result[0].password;
         const user_id = result[0].id;
