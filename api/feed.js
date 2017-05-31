@@ -262,14 +262,14 @@ function updateDashboard(league, socket){
                 };
                 socket.emit('action', onUpdateCards);
               }).catch(error => {
-                  socket.emit({ message: 'Unable to get the API data. Please try again' });
+                socket.emit({ message: 'Unable to get the API data. Please try again' });
               })
             }
           })
       }));
     }
   }).catch(error => {
-      socket.emit({ message: 'Unable to get the API data. Please try again' });
+    socket.emit({ message: 'Unable to get the API data. Please try again' });
   })
 }
 
