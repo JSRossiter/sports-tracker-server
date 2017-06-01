@@ -24,6 +24,7 @@ module.exports = (function () {
           game.homeTeam = dbGame.hometeam;
           game.date = dbGame.date;
           game.time = dbGame.time;
+          game.startTime = dbGame.time;
           game.league = dbGame.league;
           return game;
         });
@@ -56,6 +57,8 @@ module.exports = (function () {
         res.status(500);
         res.json({ message: 'Database Error. Please try again' });
       });
+    } else {
+      res.json();
     }
   });
 
