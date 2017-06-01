@@ -23,6 +23,7 @@ function getTeams(teamlist){
   });
 }
 
+
 function getNTeams(teamlist){
   return teamlist.teams.map(team => {
     return { id: Number(team.ID), city: team.City, name: team.Name, abbreviation: team.Abbreviation };
