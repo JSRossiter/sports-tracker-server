@@ -25,7 +25,8 @@ module.exports = (function () {
 
   // checks for sessions on page refresh
   router.get('/checkifloggedin', (req, res) => {
-    if(req.session.username != undefined){
+
+    if (req.session.username !== undefined) {
       dbUsers.getUserByUserName(req.session.username).then((result) => {
         res.json({
           isLoggedIn: (req.session.username !== undefined),
@@ -35,7 +36,7 @@ module.exports = (function () {
         });
       });
     } else {
-      res.json({ isLoggedIn: false });
+      res.json( { isLoggedIn: false });
     }
   });
 
@@ -46,12 +47,26 @@ module.exports = (function () {
     res.json({ message: 'Success', email: req.body.email });
   });
 
+  // notify-me route
+  router.post('/notify-me', (req, res) => {
+    sendEmail(req.body.date, req.body.awayTeam, req.body.homeTeam, req.body.email, req.body.startTime);
+    res.status(200);
+    res.json({ message: 'Success', email: req.body.email });
+  });
+
   // register route
   router.post('/register', (req, res) => {
-    dbUsers.getUserByUserNameOrEmail(req.body.username, req.body.email).then((user) => {
+    dbUsers.getUserByUserNameOrEmail(req.body.username, req.body.email)
+    .then((user) => {
       if (!req.body.email || !req.body.password || !req.body.username) {
         res.status(400);
         res.json({ message: 'Please input all fields.' });
+      } else if (req.body.password.length < 8) {
+        res.status(400);
+        res.json({ message: 'Password length must contain at least 8 characters.' });
+      } else if (req.body.username.length < 5) {
+        res.status(400);
+        res.json({ message: 'User name length must exceed 5 characters.' });
       } else if (user[0]) {
         res.status(400);
         res.json({ message: 'Username/Email already in use. Please register with another username and email' });
