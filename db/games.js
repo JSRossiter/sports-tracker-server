@@ -16,6 +16,15 @@ module.exports = function (knex) {
     findGame: id => knex.select('*')
       .from('games')
       .where('id', '=', id),
-    insertGame: game => knex('games').insert({ id: game.gameId, league: game.league, awayTeam: game.awayTeam, homeTeam: game.homeTeam, time: game.time, date: game.date })
+    insertGame: game => knex('games').insert({ id: game.gameId, league: game.league, awayTeam: game.awayTeam, homeTeam: game.homeTeam, time: game.time, date: game.date }),
+    getGamesByTeam: teamId => knex.select('*')
+      .from('games')
+      .where('away_team_id', '=', teamId)
+      .orWhere('home_team_id', '=', teamId)
+      .then(games => games.filter((game) => {
+        const days = game.league === 'MLB' ? 3 : 7;
+        const gameDate = moment(game.date, 'YYYY-MM-DD');
+        return gameDate.isBetween(moment(), moment().add(days, 'days'), 'day', '[]');
+      }))
   };
 };
