@@ -10,6 +10,15 @@ const dbCards = require('../db/cards')(knex);
 const dbGames = require('../db/games')(knex);
 const dbFavorites = require('../db/favourites')(knex);
 
+const createGames = data => data.map(game => ({
+  gameId: game.id,
+  awayTeam: { Abbreviation: game.awayteam },
+  homeTeam: { Abbreviation: game.hometeam },
+  league: game.league,
+  date: game.date,
+  startTime: game.time,
+  time: game.time
+}));
 
 module.exports = (function () {
   user_router.get('/get', (req, res) => {
@@ -32,7 +41,7 @@ module.exports = (function () {
         return query;
       })
       .then((games) => {
-        responseData.favorites = games;
+        responseData.favorites = createGames(games);
         res.json(responseData);
       })
       .catch((error) => {
@@ -50,28 +59,34 @@ module.exports = (function () {
     if (user_id) {
       dbCards.findByGameAndUser(gameId.gameId, user_id).then((result) => {
         if (result[0]) {
-          dbCards.removeCard(result[0]).then(result => res.json()).catch((error) => {
-            res.status(500);
-            res.json({ message: 'Database Error. Please try again' });
-          });
+          dbCards.removeCard(result[0])
+            .then((result) => {
+              res.status(200);
+              res.json({ message: 'Card removed from database' });
+            })
+            .catch((error) => {
+              res.status(500);
+              res.json({ message: 'Database Error. Please try again' });
+            });
         }
       }).catch((error) => {
         res.status(500);
         res.json({ message: 'Database Error. Please try again' });
       });
     } else {
-      res.json();
+      res.status(200);
+      res.json({ message: 'Card not in database' });
     }
   });
 
   user_router.post('/favorite', (req, res) => {
     dbFavorites.insertFavouriteTeam(req.session.user_id, req.body.team)
-      .then(() => dbGames.getGamesByTeam(req.body.team))
+      .then(() => dbFavorites.getGamesByUser(req.session.user_id))
       .then((result) => {
         res.status(200);
         res.json({
           message: 'Team added to favorites',
-          games: result
+          games: createGames(result)
         });
       })
       .catch((error) => {
