@@ -25,6 +25,7 @@ module.exports = (function() {
             game.homeTeamId = dbGame.home_team_id;
             game.date = dbGame.date;
             game.time = dbGame.time;
+            game.startTime = dbGame.time;
             game.league = dbGame.league;
             return game;
           })

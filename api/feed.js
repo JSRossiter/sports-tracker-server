@@ -99,6 +99,7 @@ function addCard(user_id, game, res){
     data.gameCompleted = selectedGame.isCompleted;
     data.displayPlayByPlay = false;
     data.startTime = game.time;
+    data.time = game.time;
     data.inProgress = selectedGame.isInProgress;
     data.isUnplayed = selectedGame.isUnplayed;
     data.plays = [];
@@ -205,6 +206,7 @@ function updateDashboard(league, socket){
             data.gameCompleted = game.isCompleted;
             data.displayPlayByPlay = false;
             data.startTime = game.time;
+            data.time = game.time;
             data.isCompleted = game.isInProgress !== 'true' && game.isUnplayed !== 'true';
             data.plays = [];
             data.currentInning = '';

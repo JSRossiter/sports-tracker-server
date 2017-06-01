@@ -1,13 +1,7 @@
-module.exports = function(knex) {
+const moment = require('moment');
+
+module.exports = function (knex) {
   return {
-    findByLeagueAndDate: (league, date) => {
-      return knex.select('games.*', 'games.away_team_id', 'games.home_team_id', 'awayteam.abbreviation AS awayteam', 'hometeam.abbreviation AS hometeam')
-      .from('games')
-      .join('teams AS awayteam', 'games.away_team_id', 'awayteam.id')
-      .join('teams AS hometeam', 'games.home_team_id', 'hometeam.id')
-      .where('games.league', '=', league).andWhere('games.date', '=', date)
-      .orderBy('games.time', 'asc');
-    },
     findGame: (id) => {
       return knex.select('*')
       .from('games')
@@ -23,6 +17,17 @@ module.exports = function(knex) {
       return knex.select('id')
       .from('teams')
       .where('id','=', id);
-    }
+    },
+    findByLeagueAndDate: (league, date) => knex.select('games.*', 'awayteam.abbreviation AS awayteam', 'hometeam.abbreviation AS hometeam')
+      .from('games')
+      .join('teams AS awayteam', 'games.away_team_id', 'awayteam.id')
+      .join('teams AS hometeam', 'games.home_team_id', 'hometeam.id')
+      .where('games.league', '=', league)
+      .andWhere('games.date', '=', date)
+      .then(data => data.sort((a, b) => {
+        const aDate = moment(`${a.date} ${a.time}`, 'YYYY-MM-DD hh:mmA');
+        const bDate = moment(`${b.date} ${b.time}`, 'YYYY-MM-DD hh:mmA');
+        return aDate.diff(bDate);
+      }))
   };
 };
