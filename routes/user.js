@@ -20,7 +20,9 @@ module.exports = (function() {
             let game = {};
             game.gameId = dbGame.gameId;
             game.awayTeam = dbGame.awayteam;
+            game.awayTeamId = dbGame.away_team_id;
             game.homeTeam = dbGame.hometeam;
+            game.homeTeamId = dbGame.home_team_id;
             game.date = dbGame.date;
             game.time = dbGame.time;
             game.league = dbGame.league;
@@ -51,6 +53,8 @@ module.exports = (function() {
         res.status(500);
         res.json({ message: 'Database Error. Please try again' });
       });
+    } else {
+      res.json();
     }
   })
 

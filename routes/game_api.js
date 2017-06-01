@@ -29,14 +29,16 @@ module.exports = (function() {
 
    api_router.get('/:league', (req, res) => {
     const league = req.params.league;
-    const date = moment().tz(date_time_zone).format(date_format);
+    let date = moment().tz(date_time_zone).format(date_format);
     dbGames.findByLeagueAndDate(league, date).then(result => {
       if(result[0]){
         const values = result.map(dbGame => {
           let game = {};
-          game.gameId = dbGame.id;
-          game.awayTeam = {Abbreviation: dbGame.awayteam};
-          game.homeTeam = {Abbreviation: dbGame.hometeam};
+          game.gameId = Number(dbGame.id);
+          game.awayTeam = dbGame.awayteam;
+          game.awayTeamId = dbGame.away_team_id;
+          game.homeTeam = dbGame.hometeam;
+          game.homeTeamId = dbGame.home_team_id;
           game.date = dbGame.date;
           game.time = dbGame.time;
           game.league = dbGame.league;
@@ -45,6 +47,7 @@ module.exports = (function() {
         res.json({ response: values });
         return;
       } else {
+        date = date.replace(/-/g , '');
         axios.get(`https://www.mysportsfeeds.com/api/feed/pull/${league}/latest/daily_game_schedule.json?fordate=${date}`, config)
         .then(function(json){
           if(!json.data.dailygameschedule.gameentry){
@@ -53,7 +56,11 @@ module.exports = (function() {
           }
           let startTime;
           const values = json.data.dailygameschedule.gameentry.map(game => {
-            game.gameId = game.id;
+            game.gameId = Number(game.id);
+            game.homeTeamId = game.homeTeam.ID;
+            game.homeTeam = game.homeTeam.Abbreviation;
+            game.awayTeamId = game.awayTeam.ID;
+            game.awayTeam = game.awayTeam.Abbreviation;
             startTime = moment.tz(`${game.date} ${game.time}`, "YYYY-MM-DD hh:mmA", game_time_zone);
             game.time =  startTime.tz(date_time_zone).format('hh:mmA');
             return game;
