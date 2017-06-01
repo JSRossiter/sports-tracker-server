@@ -1,14 +1,14 @@
 require('dotenv').config();
 const express = require('express');
+
 const user_router = express.Router();
 const ENV = process.env.NODE_ENV || 'development';
+
 const knexConfig = require('../knexfile');
 const knex = require('knex')(knexConfig[ENV]);
 const dbCards = require('../db/cards')(knex);
 const dbGames = require('../db/games')(knex);
 const dbFavorites = require('../db/favourites')(knex);
-const cookieSession = require('cookie-session');
-const bodyParser = require('body-parser');
 
 
 module.exports = (function () {
@@ -28,10 +28,12 @@ module.exports = (function () {
           game.league = dbGame.league;
           return game;
         });
-        return dbFavorites.getTeamsByUser(user_id);
+        const query = dbFavorites.getGamesByUser(user_id);
+        return query;
       })
-      .then((cards) => {
-
+      .then((games) => {
+        responseData.favorites = games;
+        res.json(responseData);
       })
       .catch((error) => {
         res.status(500);
