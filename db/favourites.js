@@ -5,12 +5,9 @@ module.exports = function (knex) {
 
     insertFavouriteTeam: (user_id, team_id) => knex.returning('id')
       .insert({ user_id, team_id }).into('favourites'),
-    getTeamsByUser: (user_id) => {
-      console.log('favourite teams by user');
-      return knex.select('*')
+    getTeamsByUser: user_id => knex.select('*')
       .from('favourites')
-      .where('user_d', '=', user_id);
-    },
+      .where('user_d', '=', user_id),
     getGamesByUser: user_id => knex.raw('select games.*, awayTeam.Abbreviation as awayTeam, homeTeam.Abbreviation as homeTeam from games join teams as awayTeam on away_team_id = awayTeam.id join teams as homeTeam on home_team_id = homeTeam.id where home_team_id in (select team_id from favourites where user_id = ?) or away_team_id in (select team_id from favourites where user_id = ?);', [user_id, user_id])
       .then(games => games.rows.filter((game) => {
         const days = game.league === 'MLB' ? 3 : 7;
