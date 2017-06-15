@@ -40,11 +40,13 @@ function addUserCard(user_id, game, res) {
         dbCards.insertCard(game, user_id).then((result) => {
         }).catch((error) => {
           res.status(500);
+          console.log(error, '\n-------------------------------1');
           res.json({ message: 'Database Error. Please try again' });
         });
       }
     }).catch((error) => {
       res.status(500);
+      console.log(error, '\n-------------------------------2');
       res.json({ message: 'Database Error. Please try again' });
     });
   }
@@ -53,18 +55,19 @@ function addUserCard(user_id, game, res) {
 function addGame(user_id, game, res) {
   dbGames.findGame(game.gameId).then((result) => {
     if (!result[0]) {
+      console.log(game);
       dbGames.insertGame(game).then((result) => {
         addUserCard(user_id, game, res);
       })
       .catch((error) => {
-        res.status(500);
-        res.json({ message: 'Database Error. Please try again' });
+        console.log(error, '\n-------------------------------3');
       });
     } else {
       addUserCard(user_id, game, res);
     }
   }).catch((error) => {
     res.status(500);
+    console.log(error, '\n-------------------------------4');
     res.json({ message: 'Database Error. Please try again' });
   });
 }
@@ -85,7 +88,6 @@ function addCard(user_id, game, res) {
     const selectedGame = gameSelector(game.gameId, response.data);
     data.gameId = game.gameId;
     data.league = game.league;
-    data.display = 'BASIC';
     data.awayTeam = game.awayTeam;
     data.awayTeamId = selectedGame.game.awayTeam.ID;
     data.homeTeam = game.homeTeam;
