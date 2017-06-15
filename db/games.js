@@ -6,11 +6,12 @@ module.exports = function (knex) {
       .from('games')
       .where('id', '=', id),
     insertGame: game => knex('games').insert({ id: game.gameId, league: game.league, away_team_id: game.awayTeamId, home_team_id: game.homeTeamId, time: game.time, date: game.date }),
+    insertGames: games => knex('games').returning('*').insert(games),
     insertTeam: (id, abbr) => knex('teams').insert({ id, abbreviation: abbr }),
     findTeam: id => knex.select('id')
       .from('teams')
       .where('id', '=', id),
-    findByLeagueAndDate: (league, date) => knex.select('games.*', 'awayteam.abbreviation AS awayteam', 'hometeam.abbreviation AS hometeam')
+    findByLeagueAndDate: (league, date) => knex.select('games.*', 'awayteam.abbreviation AS awayteam', 'away_team_id', 'hometeam.abbreviation AS hometeam', 'home_team_id')
       .from('games')
       .join('teams AS awayteam', 'games.away_team_id', 'awayteam.id')
       .join('teams AS hometeam', 'games.home_team_id', 'hometeam.id')
