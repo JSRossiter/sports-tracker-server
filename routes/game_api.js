@@ -1,15 +1,14 @@
 require('dotenv').config();
 const axios = require('axios');
 const express = require('express');
+const moment = require('moment-timezone');
 
 const apiRouter = express.Router();
 const ENV = process.env.NODE_ENV || 'development';
 
 const knexConfig = require('../knexfile');
 const knex = require('knex')(knexConfig[ENV]);
-const dbCards = require('../db/cards')(knex);
 const dbGames = require('../db/games')(knex);
-const moment = require('moment-timezone');
 
 const { addCard } = require('../api/feed');
 
@@ -24,21 +23,18 @@ const dateFormat = 'YYYY-MM-DD';
 const dateTimeZone = 'America/Los_Angeles';
 const gameTimeZone = 'America/New_York';
 
-
 const getGamesByDate = (league, date) => dbGames.findByLeagueAndDate(league, date).then((result) => {
   if (result[0]) {
-    return result.map((dbGame) => {
-      const game = {};
-      game.gameId = dbGame.id;
-      game.awayTeam = { Abbreviation: dbGame.awayteam };
-      game.homeTeam = { Abbreviation: dbGame.hometeam };
-      game.date = dbGame.date;
-      game.time = dbGame.time;
-      game.league = dbGame.league;
-      return game;
-    });
+    return result.map(game => ({
+      gameId: game.id,
+      awayTeam: { Abbreviation: game.awayteam, ID: game.away_team_id },
+      homeTeam: { Abbreviation: game.hometeam, ID: game.home_team_id },
+      date: game.date,
+      time: game.time,
+      league: game.league
+    }));
   }
-    // return new Promise((resolve, reject) => resolve([]));
+
   const apiDate = date.replace(/-/g, '');
   const apiPath = `https://www.mysportsfeeds.com/api/feed/pull/${league}/latest/daily_game_schedule.json?fordate=${apiDate}`;
   return axios.get(apiPath, config).then((json) => {
@@ -53,6 +49,20 @@ const getGamesByDate = (league, date) => dbGames.findByLeagueAndDate(league, dat
       });
     }
     return [];
+  })
+  .then((games) => {
+    if (games.length) {
+      const gamesForDb = games.map(game => ({
+        id: game.gameId,
+        league: game.league,
+        away_team_id: game.awayTeam.ID,
+        home_team_id: game.homeTeam.ID,
+        time: game.time,
+        date: game.date
+      }));
+      dbGames.insertGames(gamesForDb).catch(error => console.log(error));
+    }
+    return games;
   });
 })
 .then(values => values);
