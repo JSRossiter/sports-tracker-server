@@ -36,7 +36,10 @@ const getGamesByDate = (league, date) => dbGames.findByLeagueAndDate(league, dat
   }
 
   const apiDate = date.replace(/-/g, '');
-  const apiPath = `https://www.mysportsfeeds.com/api/feed/pull/${league}/latest/daily_game_schedule.json?fordate=${apiDate}`;
+  let apiPath = `https://www.mysportsfeeds.com/api/feed/pull/${league}/latest/daily_game_schedule.json?fordate=${apiDate}`;
+  if (league === 'MLB') {
+    apiPath = `https://api.mysportsfeeds.com/v1.1/sample/pull/mlb/2016-2016-regular/daily_game_schedule.json?fordate=${apiDate}`;
+  }
   return axios.get(apiPath, config).then((json) => {
     if (json.data.dailygameschedule.gameentry) {
       let startTime;

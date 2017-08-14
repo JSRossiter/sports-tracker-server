@@ -77,7 +77,7 @@ function addCard(user_id, game, res) {
 
   const date = game.date.replace(/-/g, '');
 
-  axios.get(`https://www.mysportsfeeds.com/api/feed/pull/${league}/latest/scoreboard.json?fordate=${date}`, config)
+  axios.get('https://api.mysportsfeeds.com/v1.1/pull/mlb/2016-regular/scoreboard.json?fordate=20160424', config)
   .then((response) => {
     const selectedGame = gameSelector(game.gameId, response.data);
     const data = {
@@ -101,7 +101,7 @@ function addCard(user_id, game, res) {
 
 
     if (game_starting_time.diff(now) < 0) {
-      axios.get(`https://www.mysportsfeeds.com/api/feed/pull/${game.league}/latest/game_playbyplay.json?gameid=${game.gameId}`, config)
+      axios.get(`https://api.mysportsfeeds.com/v1.1/pull/mlb/2016-regular/game_playbyplay.json?gameid=${game.gameId}`, config)
       .then((response) => {
         switch (game.league) {
           case BASEBALL:
